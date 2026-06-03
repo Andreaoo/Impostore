@@ -8,12 +8,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
 <style>
-
 *{
     margin:0;
     padding:0;
@@ -37,79 +32,52 @@ body{
 h1{
     font-family:'Orbitron',sans-serif;
     color:#facc15;
-    margin-bottom:25px;
-    margin-top:20px;
-    font-size:2rem;
+    margin:20px 0;
 }
 
 .card{
     background:#1e293b;
-    padding:25px;
-    border-radius:20px;
+    padding:20px;
+    border-radius:16px;
     margin-top:20px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
-.hidden{
-    display:none;
-}
+.hidden{ display:none; }
 
 button{
     border:none;
-    padding:14px 22px;
-    border-radius:12px;
+    padding:12px 18px;
+    border-radius:10px;
     cursor:pointer;
     font-weight:700;
-    margin:8px;
-    font-size:15px;
+    margin:6px;
     color:white;
     background:linear-gradient(135deg,#2563eb,#1d4ed8);
 }
 
-button:hover{
-    transform:scale(1.03);
+button:disabled{
+    opacity:0.4;
 }
 
 input,select{
     width:100%;
-    padding:12px;
+    padding:10px;
+    border-radius:10px;
     border:none;
-    border-radius:12px;
-    margin-top:10px;
+    margin-top:8px;
     background:#0f172a;
     color:white;
-}
-
-label{
-    display:block;
-    margin-top:18px;
-    text-align:left;
-    color:#93c5fd;
-}
-
-.player{
-    background:#0f172a;
-    padding:12px;
-    border-radius:12px;
-    margin-top:10px;
 }
 
 .big{
     font-size:2rem;
     font-weight:900;
+    margin:10px 0;
     color:#facc15;
 }
 
 .red{ color:#ef4444; }
 .green{ color:#22c55e; }
-
-.code{
-    font-size:2rem;
-    color:#facc15;
-    font-weight:900;
-    letter-spacing:3px;
-    margin-top:15px;
-}
 
 </style>
 </head>
@@ -120,134 +88,47 @@ label{
 
 <h1>🕵️ Gioco dell'Impostore</h1>
 
-<!-- SCELTA MODALITÀ -->
-<div class="card" id="modeArea">
-
-    <h2>Scegli modalità</h2>
-
-    <button onclick="selectMode('offline')">🟢 Offline</button>
-    <button onclick="selectMode('online')">🔵 Online</button>
-
-</div>
-
-<!-- OFFLINE -->
-<div class="card hidden" id="offlineSetup">
+<!-- SETUP -->
+<div class="card" id="setup">
 
     <h2>Modalità Offline</h2>
 
     <label>Numero giocatori</label>
-    <input type="number" id="offlinePlayers" value="5" min="3" max="20">
+    <input type="number" id="players" value="5" min="3" max="20">
 
     <label>Numero impostori</label>
-    <input type="number" id="offlineImpostors" value="1" min="1" max="5">
+    <input type="number" id="impostors" value="1" min="1" max="5">
 
     <label>Categoria</label>
-    <select id="offlineCategory">
+    <select id="category">
         <option value="calcio">Calcio</option>
         <option value="musica">Musica</option>
         <option value="film">Film</option>
     </select>
 
-    <button onclick="startOffline()">▶ Inizia partita</button>
+    <button onclick="startGame()">▶ Inizia</button>
 
 </div>
 
-<!-- ONLINE MENU -->
-<div class="card hidden" id="onlineMenu">
+<!-- GAME -->
+<div class="card hidden" id="game">
 
-    <h2>Modalità Online</h2>
+    <div id="title" class="big"></div>
 
-    <button onclick="showCreateRoom()">👑 Crea stanza</button>
-    <button onclick="showJoinRoom()">🔑 Entra stanza</button>
+    <div id="role"></div>
 
-</div>
+    <button id="seeBtn">👁️ Vedi ruolo</button>
 
-<!-- CREA STANZA -->
-<div class="card hidden" id="createRoomArea">
-
-    <h2>Crea stanza</h2>
-
-    <label>Tuo nome</label>
-    <input type="text" id="hostName">
-
-    <label>Numero giocatori</label>
-    <input type="number" id="roomPlayers" value="5">
-
-    <label>Numero impostori</label>
-    <input type="number" id="roomImpostors" value="1">
-
-    <label>Categoria</label>
-    <select id="roomCategory">
-        <option value="calcio">Calcio</option>
-        <option value="musica">Musica</option>
-        <option value="film">Film</option>
-    </select>
-
-    <button onclick="createRoom()">🎮 Crea stanza</button>
-
-</div>
-
-<!-- JOIN ROOM -->
-<div class="card hidden" id="joinRoomArea">
-
-    <h2>Entra in stanza</h2>
-
-    <label>Nome</label>
-    <input type="text" id="joinName">
-
-    <label>Codice stanza</label>
-    <input type="text" id="joinCode">
-
-    <button onclick="joinRoom()">🚪 Entra</button>
-
-</div>
-
-<!-- LOBBY -->
-<div class="card hidden" id="lobbyArea">
-
-    <h2>Lobby</h2>
-
-    <div>Codice stanza:</div>
-    <div class="code" id="roomCodeText"></div>
-
-    <div id="playersList"></div>
-
-    <button id="startBtn" class="hidden" onclick="startOnlineGame()">
-        ▶ Avvia partita
-    </button>
-
-</div>
-
-<!-- ROLE -->
-<div class="card hidden" id="roleArea">
-
-    <h2>Il tuo ruolo</h2>
-
-    <div id="roleCard"></div>
+    <div>
+        <button id="prevBtn">⬅️ Indietro</button>
+        <button id="nextBtn">➡️ Avanti</button>
+    </div>
 
 </div>
 
 </div>
 
 <script>
-
-/* FIREBASE */
-const firebaseConfig = {
-    apiKey: "INSERISCI_APIKEY",
-    authDomain: "INSERISCI_AUTHDOMAIN",
-    databaseURL: "INSERISCI_DATABASE_URL",
-    projectId: "INSERISCI_PROJECT_ID",
-    storageBucket: "INSERISCI_BUCKET",
-    messagingSenderId: "INSERISCI_SENDER",
-    appId: "INSERISCI_APPID"
-};
-
-let db = null;
-
-if(firebaseConfig.apiKey !== "INSERISCI_APIKEY"){
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-}
 
 /* PAROLE */
 const words = {
@@ -256,138 +137,80 @@ const words = {
     film:["Batman","Marvel","Netflix","Titanic","Harry Potter"]
 };
 
-/* VARIABILI */
-let gameMode = "";
-let roomCode = "";
-let playerId = "";
-let isHost = false;
+let playersCount = 0;
+let impostors = [];
+let secretWord = "";
+let current = 0;
 
-/* MODALITÀ */
-function selectMode(mode){
-    gameMode = mode;
-    document.getElementById("modeArea").classList.add("hidden");
+/* START GAME */
+function startGame(){
 
-    if(mode === "offline"){
-        document.getElementById("offlineSetup").classList.remove("hidden");
+    playersCount = parseInt(document.getElementById("players").value);
+    const impostorsCount = parseInt(document.getElementById("impostors").value);
+    const category = document.getElementById("category").value;
+
+    secretWord = words[category][Math.floor(Math.random()*words[category].length)];
+
+    impostors = [];
+
+    while(impostors.length < impostorsCount){
+        let r = Math.floor(Math.random() * playersCount);
+        if(!impostors.includes(r)) impostors.push(r);
     }
 
-    if(mode === "online"){
-        if(!db){
-            alert("Firebase non configurato.");
-            document.getElementById("modeArea").classList.remove("hidden");
-            return;
-        }
-        document.getElementById("onlineMenu").classList.remove("hidden");
-    }
+    current = 0;
+
+    document.getElementById("setup").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+
+    render();
 }
 
-/* =========================
-   OFFLINE FIXATO
-========================= */
-function startOffline(){
+/* RENDER PLAYER */
+function render(){
 
-    const players = parseInt(document.getElementById("offlinePlayers").value);
-    const impostors = parseInt(document.getElementById("offlineImpostors").value);
-    const category = document.getElementById("offlineCategory").value;
+    document.getElementById("title").innerText =
+        `Giocatore ${current + 1} / ${playersCount}`;
 
-    const secretWord = words[category][Math.floor(Math.random()*words[category].length)];
+    document.getElementById("role").innerHTML = "";
 
-    let impostorIndexes = [];
+    document.getElementById("seeBtn").style.display = "inline-block";
 
-    while(impostorIndexes.length < impostors){
-        let rand = Math.floor(Math.random()*players);
-        if(!impostorIndexes.includes(rand)){
-            impostorIndexes.push(rand);
-        }
-    }
+    document.getElementById("prevBtn").disabled = current === 0;
+    document.getElementById("nextBtn").disabled = current === playersCount - 1;
+}
 
-    let currentPlayer = 0;
+/* VEDI RUOLO */
+document.getElementById("seeBtn").onclick = () => {
 
-    const offlineArea = document.getElementById("offlineSetup");
+    const role = impostors.includes(current)
+        ? "🕵️ IMPOSTORE"
+        : secretWord;
 
-    offlineArea.innerHTML = `
-        <h2>Passa il telefono al giocatore</h2>
-
-        <div class="big" id="playerLabel"></div>
-
-        <button id="revealBtn">👁️ Scopri ruolo</button>
-
-        <div id="roleReveal" style="margin-top:20px;"></div>
-
-        <button id="nextBtn" class="hidden">➡️ Prossimo giocatore</button>
+    document.getElementById("role").innerHTML = `
+        <div class="big ${role === "🕵️ IMPOSTORE" ? "red" : "green"}">
+            ${role}
+        </div>
+        <p>Passa il telefono al prossimo giocatore</p>
     `;
 
-    const playerLabel = document.getElementById("playerLabel");
-    const roleReveal = document.getElementById("roleReveal");
-    const revealBtn = document.getElementById("revealBtn");
-    const nextBtn = document.getElementById("nextBtn");
+    document.getElementById("seeBtn").style.display = "none";
+};
 
-    function loadPlayer(){
-
-        if(currentPlayer >= players){
-            alert("Tutti i giocatori hanno visto il ruolo!");
-            location.reload();
-            return;
-        }
-
-        playerLabel.innerText = "Giocatore " + (currentPlayer + 1);
-        roleReveal.innerHTML = "";
-        revealBtn.classList.remove("hidden");
-        nextBtn.classList.add("hidden");
+/* NAVIGAZIONE */
+document.getElementById("nextBtn").onclick = () => {
+    if(current < playersCount - 1){
+        current++;
+        render();
     }
+};
 
-    revealBtn.onclick = () => {
-
-        const role = impostorIndexes.includes(currentPlayer)
-            ? "🕵️ IMPOSTORE"
-            : secretWord;
-
-        roleReveal.innerHTML = `
-            <div class="big ${role === "🕵️ IMPOSTORE" ? "red" : "green"}">
-                ${role}
-            </div>
-        `;
-
-        revealBtn.classList.add("hidden");
-        nextBtn.classList.remove("hidden");
-    };
-
-    nextBtn.onclick = () => {
-        currentPlayer++;
-        loadPlayer();
-    };
-
-    loadPlayer();
-}
-
-/* ONLINE (uguale al tuo originale) */
-function showCreateRoom(){
-    document.getElementById("onlineMenu").classList.add("hidden");
-    document.getElementById("createRoomArea").classList.remove("hidden");
-}
-
-function showJoinRoom(){
-    document.getElementById("onlineMenu").classList.add("hidden");
-    document.getElementById("joinRoomArea").classList.remove("hidden");
-}
-
-/* resto del codice online invariato */
-function generateCode(){
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
-    let code = "";
-    for(let i=0;i<6;i++){
-        code += chars[Math.floor(Math.random()*chars.length)];
+document.getElementById("prevBtn").onclick = () => {
+    if(current > 0){
+        current--;
+        render();
     }
-    return code;
-}
-
-function createRoom(){ /* invariato */ }
-function joinRoom(){ /* invariato */ }
-function openLobby(){ /* invariato */ }
-function listenLobby(){ /* invariato */ }
-function renderPlayers(){ /* invariato */ }
-function startOnlineGame(){ /* invariato */ }
-function showRole(){ /* invariato */ }
+};
 
 </script>
 
