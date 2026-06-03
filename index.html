@@ -8,6 +8,10 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <style>
 *{
     margin:0;
@@ -32,39 +36,39 @@ body{
 h1{
     font-family:'Orbitron',sans-serif;
     color:#facc15;
-    margin:20px 0;
+    margin-bottom:25px;
+    margin-top:20px;
+    font-size:2rem;
 }
 
 .card{
     background:#1e293b;
-    padding:20px;
-    border-radius:16px;
+    padding:25px;
+    border-radius:20px;
     margin-top:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
 
 .hidden{ display:none; }
 
 button{
     border:none;
-    padding:12px 18px;
-    border-radius:10px;
+    padding:14px 22px;
+    border-radius:12px;
     cursor:pointer;
     font-weight:700;
-    margin:6px;
+    margin:8px;
+    font-size:15px;
     color:white;
     background:linear-gradient(135deg,#2563eb,#1d4ed8);
 }
 
-button:disabled{
-    opacity:0.4;
-}
-
 input,select{
     width:100%;
-    padding:10px;
-    border-radius:10px;
+    padding:12px;
     border:none;
-    margin-top:8px;
+    border-radius:12px;
+    margin-top:10px;
     background:#0f172a;
     color:white;
 }
@@ -72,7 +76,6 @@ input,select{
 .big{
     font-size:2rem;
     font-weight:900;
-    margin:10px 0;
     color:#facc15;
 }
 
@@ -88,34 +91,56 @@ input,select{
 
 <h1>🕵️ Gioco dell'Impostore</h1>
 
-<!-- SETUP -->
-<div class="card" id="setup">
+<!-- MENU INIZIALE -->
+<div class="card" id="modeArea">
+
+    <h2>Scegli modalità</h2>
+
+    <button onclick="selectMode('offline')">🟢 Offline</button>
+    <button onclick="selectMode('online')">🔵 Online</button>
+
+</div>
+
+<!-- OFFLINE SETUP -->
+<div class="card hidden" id="offlineSetup">
 
     <h2>Modalità Offline</h2>
 
     <label>Numero giocatori</label>
-    <input type="number" id="players" value="5" min="3" max="20">
+    <input type="number" id="offlinePlayers" value="5" min="3" max="20">
 
     <label>Numero impostori</label>
-    <input type="number" id="impostors" value="1" min="1" max="5">
+    <input type="number" id="offlineImpostors" value="1" min="1" max="5">
 
     <label>Categoria</label>
-    <select id="category">
+    <select id="offlineCategory">
         <option value="calcio">Calcio</option>
         <option value="musica">Musica</option>
         <option value="film">Film</option>
     </select>
 
-    <button onclick="startGame()">▶ Inizia</button>
+    <button onclick="startOffline()">▶ Inizia partita</button>
+    <button onclick="goHome()">🏠 Home</button>
 
 </div>
 
-<!-- GAME -->
-<div class="card hidden" id="game">
+<!-- ONLINE MENU -->
+<div class="card hidden" id="onlineMenu">
 
-    <div id="title" class="big"></div>
+    <h2>Modalità Online</h2>
 
-    <div id="role"></div>
+    <button onclick="showCreateRoom()">👑 Crea stanza</button>
+    <button onclick="showJoinRoom()">🔑 Entra stanza</button>
+    <button onclick="goHome()">🏠 Home</button>
+
+</div>
+
+<!-- GAME OFFLINE -->
+<div class="card hidden" id="offlineGame">
+
+    <div id="playerTitle" class="big"></div>
+
+    <div id="roleBox"></div>
 
     <button id="seeBtn">👁️ Vedi ruolo</button>
 
@@ -124,11 +149,31 @@ input,select{
         <button id="nextBtn">➡️ Avanti</button>
     </div>
 
+    <button onclick="goHome()">🏠 Home</button>
+
 </div>
 
 </div>
 
 <script>
+
+/* FIREBASE (invariato) */
+const firebaseConfig = {
+    apiKey: "INSERISCI_APIKEY",
+    authDomain: "INSERISCI_AUTHDOMAIN",
+    databaseURL: "INSERISCI_DATABASE_URL",
+    projectId: "INSERISCI_PROJECT_ID",
+    storageBucket: "INSERISCI_BUCKET",
+    messagingSenderId: "INSERISCI_SENDER",
+    appId: "INSERISCI_APPID"
+};
+
+let db = null;
+
+if(firebaseConfig.apiKey !== "INSERISCI_APIKEY"){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+}
 
 /* PAROLE */
 const words = {
@@ -142,37 +187,67 @@ let impostors = [];
 let secretWord = "";
 let current = 0;
 
-/* START GAME */
-function startGame(){
+/* NAVIGAZIONE MENU */
+function selectMode(mode){
 
-    playersCount = parseInt(document.getElementById("players").value);
-    const impostorsCount = parseInt(document.getElementById("impostors").value);
-    const category = document.getElementById("category").value;
+    document.getElementById("modeArea").classList.add("hidden");
+
+    if(mode === "offline"){
+        document.getElementById("offlineSetup").classList.remove("hidden");
+    }
+
+    if(mode === "online"){
+        document.getElementById("onlineMenu").classList.remove("hidden");
+    }
+}
+
+function goHome(){
+
+    document.getElementById("offlineSetup").classList.add("hidden");
+    document.getElementById("offlineGame").classList.add("hidden");
+    document.getElementById("onlineMenu").classList.add("hidden");
+
+    document.getElementById("modeArea").classList.remove("hidden");
+
+    current = 0;
+}
+
+/* OFFLINE GAME */
+function startOffline(){
+
+    playersCount = parseInt(document.getElementById("offlinePlayers").value);
+    const impostorsCount = parseInt(document.getElementById("offlineImpostors").value);
+    const category = document.getElementById("offlineCategory").value;
 
     secretWord = words[category][Math.floor(Math.random()*words[category].length)];
 
     impostors = [];
 
     while(impostors.length < impostorsCount){
-        let r = Math.floor(Math.random() * playersCount);
+        let r = Math.floor(Math.random()*playersCount);
         if(!impostors.includes(r)) impostors.push(r);
     }
 
     current = 0;
 
-    document.getElementById("setup").classList.add("hidden");
-    document.getElementById("game").classList.remove("hidden");
+    document.getElementById("offlineSetup").classList.add("hidden");
+    document.getElementById("offlineGame").classList.remove("hidden");
 
     render();
 }
 
-/* RENDER PLAYER */
 function render(){
 
-    document.getElementById("title").innerText =
+    if(current >= playersCount){
+        document.getElementById("offlineGame").classList.add("hidden");
+        document.getElementById("offlineSetup").classList.remove("hidden");
+        return;
+    }
+
+    document.getElementById("playerTitle").innerText =
         `Giocatore ${current + 1} / ${playersCount}`;
 
-    document.getElementById("role").innerHTML = "";
+    document.getElementById("roleBox").innerHTML = "";
 
     document.getElementById("seeBtn").style.display = "inline-block";
 
@@ -187,7 +262,7 @@ document.getElementById("seeBtn").onclick = () => {
         ? "🕵️ IMPOSTORE"
         : secretWord;
 
-    document.getElementById("role").innerHTML = `
+    document.getElementById("roleBox").innerHTML = `
         <div class="big ${role === "🕵️ IMPOSTORE" ? "red" : "green"}">
             ${role}
         </div>
@@ -211,6 +286,10 @@ document.getElementById("prevBtn").onclick = () => {
         render();
     }
 };
+
+/* ONLINE PLACEHOLDER (invariato) */
+function showCreateRoom(){}
+function showJoinRoom(){}
 
 </script>
 
