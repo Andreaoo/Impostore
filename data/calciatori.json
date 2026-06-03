@@ -1,0 +1,22 @@
+[
+  {"nome":"Cristiano Ronaldo","img":"images/lagaccio/giocatore1.jpg"},
+  {"nome":"Lionel Messi","img":"images/lagaccio/giocatore2.jpg"},
+  {"nome":"Pelé","img":"images/lagaccio/giocatore3.jpg"},
+  {"nome":"Maradona","img":"images/lagaccio/giocatore4.jpg"},
+  {"nome":"Ronaldinho","img":"images/lagaccio/giocatore5.jpg"},
+  {"nome":"Zlatan Ibrahimović","img":"images/lagaccio/giocatore6.jpg"},
+  {"nome":"Neymar","img":"images/lagaccio/giocatore7.jpg"},
+  {"nome":"Kylian Mbappé","img":"images/lagaccio/giocatore8.jpg"},
+  {"nome":"Erling Haaland","img":null},
+  {"nome":"Lamine Yamal","img":null},
+  {"nome":"Vinícius Jr","img":null},
+  {"nome":"Mohamed Salah","img":null},
+  {"nome":"Kevin De Bruyne","img":null},
+  {"nome":"Robert Lewandowski","img":null},
+  {"nome":"Pedri","img":null},
+  {"nome":"Gianluigi Buffon","img":null},
+  {"nome":"Paolo Maldini","img":null},
+  {"nome":"Francesco Totti","img":null},
+  {"nome":"Zinedine Zidane","img":null},
+  {"nome":"Ronaldo il Fenomeno","img":null}
+]

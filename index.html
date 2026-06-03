@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gioco dell'Impostore</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+    font-family:'Exo 2',sans-serif;
+    background:#0a0e1a;
+    color:white;
+    min-height:100vh;
+    padding:20px;
+    text-align:center;
+    background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(37,99,235,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(220,38,38,0.10) 0%, transparent 60%);
+}
+.container{max-width:680px;margin:auto;}
+
+h1{
+    font-family:'Orbitron',monospace;
+    font-size:clamp(1.4rem,5vw,2rem);
+    letter-spacing:2px;
+    color:#facc15;
+    text-shadow:0 0 20px rgba(250,204,21,0.4);
+    padding:28px 0 8px;
+}
+
+.card{
+    background:rgba(31,41,55,0.85);
+    padding:28px 24px;
+    border-radius:18px;
+    margin-top:22px;
+    border:1px solid rgba(255,255,255,0.07);
+    box-shadow:0 8px 32px rgba(0,0,0,0.5);
+    backdrop-filter:blur(4px);
+    animation:fadeIn .35s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+
+label{
+    display:block;
+    color:#93c5fd;
+    font-size:0.82rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    margin:16px 0 6px;
+}
+input,select{
+    padding:10px 16px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.12);
+    background:#111827;
+    color:white;
+    font-family:'Exo 2',sans-serif;
+    font-size:15px;
+    text-align:center;
+    width:130px;
+    transition:border-color .2s;
+}
+input:focus,select:focus{outline:none;border-color:#2563eb;}
+
+#namesSection{margin-top:20px;}
+.names-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+}
+.name-field{
+    display:flex;flex-direction:column;align-items:flex-start;gap:4px;
+}
+.name-field label{margin:0;font-size:0.75rem;color:#6b7280;}
+.name-field input{width:100%;text-align:left;padding:9px 12px;}
+
+button{
+    background:linear-gradient(135deg,#2563eb,#1e40af);
+    color:white;border:none;
+    padding:13px 28px;margin:10px 6px 0;
+    border-radius:12px;cursor:pointer;
+    font-family:'Exo 2',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;
+    box-shadow:0 4px 14px rgba(37,99,235,0.35);
+    transition:transform .15s,box-shadow .15s,background .2s;
+}
+button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(37,99,235,0.5);background:linear-gradient(135deg,#3b82f6,#2563eb);}
+button:active{transform:translateY(0);}
+
+/* Pause button */
+.pause-btn{
+    position:absolute;top:16px;right:16px;
+    background:rgba(255,255,255,0.07);color:#9ca3af;
+    border:1px solid rgba(255,255,255,0.1);
+    padding:9px 11px;border-radius:10px;line-height:0;box-shadow:none;margin:0;
+}
+.pause-btn:hover{background:rgba(255,255,255,0.13);color:white;transform:none;box-shadow:none;}
+
+/* Pause modal */
+#pauseModal{
+    position:fixed;inset:0;
+    background:rgba(10,14,26,0.88);
+    display:flex;align-items:center;justify-content:center;
+    z-index:200;animation:fadeIn .2s ease;
+}
+#pauseModal .pm-card{
+    background:#1f2937;border:1px solid rgba(255,255,255,0.1);
+    border-radius:20px;padding:36px 32px;max-width:320px;width:88%;text-align:center;
+}
+#pauseModal .pm-icon{font-size:2.4rem;margin-bottom:12px;}
+#pauseModal h3{font-family:'Orbitron',monospace;font-size:1rem;color:#facc15;margin-bottom:8px;}
+#pauseModal p{color:#9ca3af;font-size:0.9rem;margin-bottom:22px;}
+#pauseModal .pm-buttons{display:flex;gap:12px;justify-content:center;}
+#pauseModal .pm-buttons button{margin:0;flex:1;}
+#pauseModal .btn-yes{background:linear-gradient(135deg,#dc2626,#991b1b);box-shadow:0 4px 14px rgba(220,38,38,0.3);}
+#pauseModal .btn-yes:hover{background:linear-gradient(135deg,#ef4444,#dc2626);}
+#pauseModal .btn-no{background:rgba(255,255,255,0.07);box-shadow:none;color:#d1d5db;border:1px solid rgba(255,255,255,0.1);}
+#pauseModal .btn-no:hover{background:rgba(255,255,255,0.12);box-shadow:none;transform:none;}
+
+/* Game area */
+#gameArea .player-header{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px;}
+.player-avatar{
+    width:90px;height:90px;border-radius:50%;
+    border:3px solid #2563eb;box-shadow:0 0 18px rgba(37,99,235,0.5);
+    background:linear-gradient(135deg,#1e3a5f,#111827);
+    display:flex;align-items:center;justify-content:center;
+    font-size:2.2rem;overflow:hidden;
+}
+.player-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+#playerTitle{font-family:'Orbitron',monospace;font-size:1.3rem;color:#facc15;text-shadow:0 0 12px rgba(250,204,21,0.3);}
+
+/* Reveal overlay */
+#revealOverlay{
+    position:fixed;inset:0;background:rgba(10,14,26,0.92);
+    display:flex;align-items:center;justify-content:center;
+    z-index:100;flex-direction:column;gap:18px;animation:fadeIn .2s ease;
+}
+#revealOverlay .reveal-card{
+    background:#1f2937;border:1px solid rgba(255,255,255,0.1);
+    border-radius:20px;padding:36px 40px;max-width:360px;width:90%;text-align:center;
+}
+#revealOverlay .reveal-avatar{
+    width:100px;height:100px;border-radius:50%;margin:0 auto 14px;
+    background:linear-gradient(135deg,#1e3a5f,#111827);
+    display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden;
+    border:3px solid #2563eb;box-shadow:0 0 24px rgba(37,99,235,0.4);
+}
+#revealOverlay .reveal-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+#revealOverlay .reveal-name{font-family:'Orbitron',monospace;font-size:1.1rem;color:#facc15;margin-bottom:8px;}
+#revealOverlay .reveal-word{font-size:1.9rem;font-weight:900;color:#facc15;text-shadow:0 0 16px rgba(250,204,21,0.5);letter-spacing:1px;}
+#revealOverlay .reveal-word.imp{color:#f87171;text-shadow:0 0 16px rgba(248,113,113,0.5);}
+#revealOverlay .reveal-sub{font-size:0.85rem;color:#6b7280;margin-top:6px;}
+
+#endArea h2{font-family:'Orbitron',monospace;font-size:1.4rem;color:#4ade80;text-shadow:0 0 16px rgba(74,222,128,0.4);margin-bottom:12px;}
+#endArea p{color:#d1d5db;margin-bottom:4px;}
+
+.hidden{display:none!important;}
+
+/* Loading spinner */
+#loadingMsg{color:#6b7280;font-size:0.9rem;margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>🕵️ Gioco dell'Impostore</h1>
+
+    <!-- SETUP -->
+    <div class="card" id="setupArea">
+        <div id="loadingMsg">⏳ Caricamento dati...</div>
+
+        <div id="setupForm" class="hidden">
+            <label>Numero giocatori:</label>
+            <input type="number" id="players" min="3" max="20" value="6" oninput="renderNameFields()">
+
+            <label>Numero impostori:</label>
+            <input type="number" id="impostors" min="1" max="5" value="1">
+
+            <label>Categoria:</label>
+            <select id="category">
+                <option value="calcio">Calcio</option>
+                <option value="calciatori">Calciatori</option>
+                <option value="musica">Musica</option>
+                <option value="serietvfilm">Serie TV &amp; Film</option>
+                <option value="geografia">Geografia</option>
+                <option value="cultura">Cultura Generale</option>
+            </select>
+
+            <div id="namesSection">
+                <label style="margin-top:22px;">Nomi giocatori:</label>
+                <div class="names-grid" id="namesGrid"></div>
+            </div>
+
+            <br>
+            <button onclick="startGame()">▶ Inizia Partita</button>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div class="card hidden" id="gameArea" style="position:relative;">
+        <button class="pause-btn" onclick="openPauseModal()" title="Pausa">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="5" y="3" width="4" height="18" rx="2"/>
+                <rect x="15" y="3" width="4" height="18" rx="2"/>
+            </svg>
+        </button>
+        <div class="player-header">
+            <div class="player-avatar" id="gameAvatar">🙂</div>
+            <div id="playerTitle"></div>
+        </div>
+        <button onclick="showRole()">👁 Mostra Ruolo</button>
+    </div>
+
+    <!-- END -->
+    <div class="card hidden" id="endArea">
+        <h2>🎉 Tutti pronti!</h2>
+        <p>Ora discutete e scoprite chi sono gli impostori.</p>
+        <br>
+        <button onclick="goToMenu()">🏠 Menu Principale</button>
+    </div>
+</div>
+
+<!-- PAUSE MODAL -->
+<div id="pauseModal" class="hidden">
+    <div class="pm-card">
+        <div class="pm-icon">⏸️</div>
+        <h3>Partita in pausa</h3>
+        <p>Vuoi terminare la partita e tornare al menu principale?</p>
+        <div class="pm-buttons">
+            <button class="btn-yes" onclick="confirmAbort()">Sì, termina</button>
+            <button class="btn-no" onclick="closePauseModal()">No, continua</button>
+        </div>
+    </div>
+</div>
+
+<!-- REVEAL OVERLAY -->
+<div id="revealOverlay" class="hidden">
+    <div class="reveal-card">
+        <div class="reveal-avatar" id="revealAvatar">🙂</div>
+        <div class="reveal-name" id="revealName"></div>
+        <div class="reveal-word" id="revealWord"></div>
+        <div class="reveal-sub" id="revealSub"></div>
+    </div>
+    <button onclick="closeReveal()">✔ Capito, chiudi</button>
+</div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────
+// Quando carichi su GitHub, sostituisci con il tuo URL raw, es:
+// const BASE_URL = "https://raw.githubusercontent.com/TUONOME/gioco-impostore/main";
+// In locale (file://) usa percorsi relativi:
+const BASE_URL = ".";
+// ──────────────────────────────────────────────────────────────────────────
+
+let allData = {};         // { calcio: [...], calciatori: [{nome,img},...], ... }
+let lagaccioImages = [];  // immagini random per calcio/calciatori senza img specifica
+let shuffledImages = [];
+
+let currentPlayer = 1;
+let totalPlayers = 0;
+let impostorList = [];
+let secretWord = "";
+let currentWordImg = null; // immagine associata alla parola sorteggiata (calciatori)
+let playerNames = [];
+let playerImgs = [];  // immagine assegnata a ogni giocatore per questa partita
+
+// ── LOAD DATA ──────────────────────────────────────────────────────────────
+const categoryFiles = ["calcio","calciatori","musica","serietvfilm","geografia","cultura"];
+
+async function loadAllData() {
+    try {
+        const results = await Promise.all(
+            categoryFiles.map(cat =>
+                fetch(`${BASE_URL}/data/${cat}.json`).then(r => r.json())
+            )
+        );
+        categoryFiles.forEach((cat, i) => allData[cat] = results[i]);
+
+        // Build lagaccio images list from calciatori entries that have img
+        lagaccioImages = allData.calciatori
+            .filter(c => c.img)
+            .map(c => `${BASE_URL}/${c.img}`);
+
+        document.getElementById("loadingMsg").classList.add("hidden");
+        document.getElementById("setupForm").classList.remove("hidden");
+        renderNameFields();
+    } catch(e) {
+        document.getElementById("loadingMsg").innerText = "❌ Errore caricamento dati. Controlla la connessione.";
+        console.error(e);
+    }
+}
+
+loadAllData();
+
+// ── NAME FIELDS ────────────────────────────────────────────────────────────
+function renderNameFields() {
+    const n = Math.max(3, Math.min(20, parseInt(document.getElementById("players").value) || 3));
+    const grid = document.getElementById("namesGrid");
+    grid.innerHTML = "";
+    for (let i = 1; i <= n; i++) {
+        const prev = playerNames[i-1] || "";
+        grid.innerHTML += `
+        <div class="name-field">
+            <label>Giocatore ${i}</label>
+            <input type="text" id="name_${i}" placeholder="Nome..." value="${prev}" maxlength="20">
+        </div>`;
+    }
+}
+
+// ── START GAME ─────────────────────────────────────────────────────────────
+function startGame() {
+    totalPlayers = parseInt(document.getElementById("players").value);
+    const impostorCount = parseInt(document.getElementById("impostors").value);
+    const category = document.getElementById("category").value;
+
+    if (impostorCount >= totalPlayers) {
+        alert("Gli impostori devono essere meno dei giocatori!");
+        return;
+    }
+
+    // Collect names
+    playerNames = [];
+    for (let i = 1; i <= totalPlayers; i++) {
+        const val = document.getElementById("name_" + i)?.value.trim();
+        playerNames.push(val || "Giocatore " + i);
+    }
+
+    // Pick secret word / calciatore
+    const data = allData[category];
+    const pick = data[Math.floor(Math.random() * data.length)];
+
+    if (category === "calciatori" && typeof pick === "object") {
+        secretWord = pick.nome;
+        currentWordImg = pick.img ? `${BASE_URL}/${pick.img}` : null;
+    } else {
+        secretWord = typeof pick === "object" ? pick.nome : pick;
+        currentWordImg = null;
+    }
+
+    // Assign player images (lagaccio images shuffled, for calcio & calciatori)
+    const useImages = (category === "calcio" || category === "calciatori") && lagaccioImages.length > 0;
+    if (useImages) {
+        shuffledImages = [...lagaccioImages].sort(() => Math.random() - 0.5);
+    }
+    playerImgs = [];
+    for (let i = 0; i < totalPlayers; i++) {
+        playerImgs.push(useImages ? shuffledImages[i % shuffledImages.length] : null);
+    }
+
+    // Pick impostors
+    impostorList = [];
+    while (impostorList.length < impostorCount) {
+        const r = Math.floor(Math.random() * totalPlayers) + 1;
+        if (!impostorList.includes(r)) impostorList.push(r);
+    }
+
+    currentPlayer = 1;
+    document.getElementById("setupArea").classList.add("hidden");
+    document.getElementById("gameArea").classList.remove("hidden");
+    updatePlayer();
+}
+
+// ── PLAYER UPDATE ──────────────────────────────────────────────────────────
+function updatePlayer() {
+    const name = playerNames[currentPlayer - 1];
+    document.getElementById("playerTitle").innerText = name;
+
+    const img = playerImgs[currentPlayer - 1];
+    const av = document.getElementById("gameAvatar");
+    if (img) {
+        av.innerHTML = `<img src="${img}" alt="${name}">`;
+    } else {
+        av.innerHTML = "🙂";
+    }
+}
+
+// ── SHOW ROLE ──────────────────────────────────────────────────────────────
+function showRole() {
+    const name = playerNames[currentPlayer - 1];
+    const isImpostor = impostorList.includes(currentPlayer);
+    const img = playerImgs[currentPlayer - 1];
+
+    const revAv = document.getElementById("revealAvatar");
+    if (img) {
+        revAv.innerHTML = `<img src="${img}" alt="${name}">`;
+        revAv.style.borderColor = isImpostor ? "#dc2626" : "#2563eb";
+        revAv.style.boxShadow = isImpostor
+            ? "0 0 24px rgba(220,38,38,0.5)"
+            : "0 0 24px rgba(37,99,235,0.4)";
+    } else {
+        revAv.innerHTML = "🙂";
+        revAv.style.borderColor = "#2563eb";
+        revAv.style.boxShadow = "0 0 24px rgba(37,99,235,0.4)";
+    }
+
+    document.getElementById("revealName").innerText = name;
+
+    const wordEl = document.getElementById("revealWord");
+    const subEl = document.getElementById("revealSub");
+
+    if (isImpostor) {
+        wordEl.innerText = "🕵️ IMPOSTORE";
+        wordEl.className = "reveal-word imp";
+        subEl.innerText = "Bluffa bene!";
+    } else {
+        wordEl.innerText = secretWord;
+        wordEl.className = "reveal-word";
+        subEl.innerText = "Ricorda la parola e non tradire!";
+    }
+
+    document.getElementById("revealOverlay").classList.remove("hidden");
+}
+
+function closeReveal() {
+    document.getElementById("revealOverlay").classList.add("hidden");
+    currentPlayer++;
+    if (currentPlayer > totalPlayers) {
+        document.getElementById("gameArea").classList.add("hidden");
+        document.getElementById("endArea").classList.remove("hidden");
+    } else {
+        updatePlayer();
+    }
+}
+
+// ── PAUSE / ABORT ──────────────────────────────────────────────────────────
+function openPauseModal() {
+    document.getElementById("pauseModal").classList.remove("hidden");
+}
+function closePauseModal() {
+    document.getElementById("pauseModal").classList.add("hidden");
+}
+function confirmAbort() {
+    document.getElementById("pauseModal").classList.add("hidden");
+    document.getElementById("gameArea").classList.add("hidden");
+    document.getElementById("endArea").classList.add("hidden");
+    document.getElementById("revealOverlay").classList.add("hidden");
+    document.getElementById("setupArea").classList.remove("hidden");
+    currentPlayer = 1; impostorList = []; secretWord = ""; playerNames = [];
+    renderNameFields();
+}
+function goToMenu() {
+    document.getElementById("endArea").classList.add("hidden");
+    document.getElementById("setupArea").classList.remove("hidden");
+    currentPlayer = 1; impostorList = []; secretWord = ""; playerNames = [];
+    renderNameFields();
+}
+</script>
+</body>
+</html>
