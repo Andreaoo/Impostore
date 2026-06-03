@@ -3,448 +3,839 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Gioco dell'Impostore</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
 body{
-    font-family:'Exo 2',sans-serif;
-    background:#0a0e1a;
+    background:#0b1020;
     color:white;
+    font-family:'Exo 2',sans-serif;
     min-height:100vh;
     padding:20px;
     text-align:center;
-    background-image:
-        radial-gradient(ellipse at 20% 20%, rgba(37,99,235,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 80%, rgba(220,38,38,0.10) 0%, transparent 60%);
 }
-.container{max-width:680px;margin:auto;}
+
+.container{
+    max-width:700px;
+    margin:auto;
+}
 
 h1{
-    font-family:'Orbitron',monospace;
-    font-size:clamp(1.4rem,5vw,2rem);
-    letter-spacing:2px;
+    font-family:'Orbitron',sans-serif;
     color:#facc15;
-    text-shadow:0 0 20px rgba(250,204,21,0.4);
-    padding:28px 0 8px;
+    margin-bottom:25px;
+    margin-top:20px;
+    font-size:2rem;
 }
 
 .card{
-    background:rgba(31,41,55,0.85);
-    padding:28px 24px;
-    border-radius:18px;
-    margin-top:22px;
-    border:1px solid rgba(255,255,255,0.07);
-    box-shadow:0 8px 32px rgba(0,0,0,0.5);
-    backdrop-filter:blur(4px);
-    animation:fadeIn .35s ease;
+    background:#1e293b;
+    padding:25px;
+    border-radius:20px;
+    margin-top:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
 }
-@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+
+.hidden{
+    display:none;
+}
+
+button{
+    border:none;
+    padding:14px 22px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:700;
+    margin:8px;
+    font-size:15px;
+    color:white;
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+}
+
+button:hover{
+    transform:scale(1.03);
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    margin-top:10px;
+    background:#0f172a;
+    color:white;
+}
 
 label{
     display:block;
+    margin-top:18px;
+    text-align:left;
     color:#93c5fd;
-    font-size:0.82rem;
-    letter-spacing:1px;
-    text-transform:uppercase;
-    margin:16px 0 6px;
 }
-input,select{
-    padding:10px 16px;
-    border-radius:10px;
-    border:1px solid rgba(255,255,255,0.12);
-    background:#111827;
-    color:white;
-    font-family:'Exo 2',sans-serif;
-    font-size:15px;
-    text-align:center;
-    width:130px;
-    transition:border-color .2s;
-}
-input:focus,select:focus{outline:none;border-color:#2563eb;}
 
-#namesSection{margin-top:20px;}
-.names-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px;
-    margin-top:12px;
+.player{
+    background:#0f172a;
+    padding:12px;
+    border-radius:12px;
+    margin-top:10px;
 }
-.name-field{
-    display:flex;flex-direction:column;align-items:flex-start;gap:4px;
-}
-.name-field label{margin:0;font-size:0.75rem;color:#6b7280;}
-.name-field input{width:100%;text-align:left;padding:9px 12px;}
 
-button{
-    background:linear-gradient(135deg,#2563eb,#1e40af);
-    color:white;border:none;
-    padding:13px 28px;margin:10px 6px 0;
-    border-radius:12px;cursor:pointer;
-    font-family:'Exo 2',sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;
-    box-shadow:0 4px 14px rgba(37,99,235,0.35);
-    transition:transform .15s,box-shadow .15s,background .2s;
+.big{
+    font-size:2rem;
+    font-weight:900;
+    color:#facc15;
 }
-button:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(37,99,235,0.5);background:linear-gradient(135deg,#3b82f6,#2563eb);}
-button:active{transform:translateY(0);}
 
-/* Pause button */
-.pause-btn{
-    position:absolute;top:16px;right:16px;
-    background:rgba(255,255,255,0.07);color:#9ca3af;
-    border:1px solid rgba(255,255,255,0.1);
-    padding:9px 11px;border-radius:10px;line-height:0;box-shadow:none;margin:0;
+.red{
+    color:#ef4444;
 }
-.pause-btn:hover{background:rgba(255,255,255,0.13);color:white;transform:none;box-shadow:none;}
 
-/* Pause modal */
-#pauseModal{
-    position:fixed;inset:0;
-    background:rgba(10,14,26,0.88);
-    display:flex;align-items:center;justify-content:center;
-    z-index:200;animation:fadeIn .2s ease;
+.green{
+    color:#22c55e;
 }
-#pauseModal .pm-card{
-    background:#1f2937;border:1px solid rgba(255,255,255,0.1);
-    border-radius:20px;padding:36px 32px;max-width:320px;width:88%;text-align:center;
-}
-#pauseModal .pm-icon{font-size:2.4rem;margin-bottom:12px;}
-#pauseModal h3{font-family:'Orbitron',monospace;font-size:1rem;color:#facc15;margin-bottom:8px;}
-#pauseModal p{color:#9ca3af;font-size:0.9rem;margin-bottom:22px;}
-#pauseModal .pm-buttons{display:flex;gap:12px;justify-content:center;}
-#pauseModal .pm-buttons button{margin:0;flex:1;}
-#pauseModal .btn-yes{background:linear-gradient(135deg,#dc2626,#991b1b);box-shadow:0 4px 14px rgba(220,38,38,0.3);}
-#pauseModal .btn-yes:hover{background:linear-gradient(135deg,#ef4444,#dc2626);}
-#pauseModal .btn-no{background:rgba(255,255,255,0.07);box-shadow:none;color:#d1d5db;border:1px solid rgba(255,255,255,0.1);}
-#pauseModal .btn-no:hover{background:rgba(255,255,255,0.12);box-shadow:none;transform:none;}
 
-/* Game area */
-#gameArea .player-header{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px;}
-.player-avatar{
-    width:90px;height:90px;border-radius:50%;
-    border:3px solid #2563eb;box-shadow:0 0 18px rgba(37,99,235,0.5);
-    background:linear-gradient(135deg,#1e3a5f,#111827);
-    display:flex;align-items:center;justify-content:center;
-    font-size:2.2rem;overflow:hidden;
+.code{
+    font-size:2rem;
+    color:#facc15;
+    font-weight:900;
+    letter-spacing:3px;
+    margin-top:15px;
 }
-.player-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-#playerTitle{font-family:'Orbitron',monospace;font-size:1.3rem;color:#facc15;text-shadow:0 0 12px rgba(250,204,21,0.3);}
 
-/* Reveal overlay */
-#revealOverlay{
-    position:fixed;inset:0;background:rgba(10,14,26,0.92);
-    display:flex;align-items:center;justify-content:center;
-    z-index:100;flex-direction:column;gap:18px;animation:fadeIn .2s ease;
-}
-#revealOverlay .reveal-card{
-    background:#1f2937;border:1px solid rgba(255,255,255,0.1);
-    border-radius:20px;padding:36px 40px;max-width:360px;width:90%;text-align:center;
-}
-#revealOverlay .reveal-avatar{
-    width:100px;height:100px;border-radius:50%;margin:0 auto 14px;
-    background:linear-gradient(135deg,#1e3a5f,#111827);
-    display:flex;align-items:center;justify-content:center;font-size:2.5rem;overflow:hidden;
-    border:3px solid #2563eb;box-shadow:0 0 24px rgba(37,99,235,0.4);
-}
-#revealOverlay .reveal-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-#revealOverlay .reveal-name{font-family:'Orbitron',monospace;font-size:1.1rem;color:#facc15;margin-bottom:8px;}
-#revealOverlay .reveal-word{font-size:1.9rem;font-weight:900;color:#facc15;text-shadow:0 0 16px rgba(250,204,21,0.5);letter-spacing:1px;}
-#revealOverlay .reveal-word.imp{color:#f87171;text-shadow:0 0 16px rgba(248,113,113,0.5);}
-#revealOverlay .reveal-sub{font-size:0.85rem;color:#6b7280;margin-top:6px;}
-
-#endArea h2{font-family:'Orbitron',monospace;font-size:1.4rem;color:#4ade80;text-shadow:0 0 16px rgba(74,222,128,0.4);margin-bottom:12px;}
-#endArea p{color:#d1d5db;margin-bottom:4px;}
-
-.hidden{display:none!important;}
-
-/* Loading spinner */
-#loadingMsg{color:#6b7280;font-size:0.9rem;margin-top:12px;}
 </style>
 </head>
+
 <body>
+
 <div class="container">
-    <h1>🕵️ Gioco dell'Impostore</h1>
 
-    <!-- SETUP -->
-    <div class="card" id="setupArea">
-        <div id="loadingMsg">⏳ Caricamento dati...</div>
+<h1>🕵️ Gioco dell'Impostore</h1>
 
-        <div id="setupForm" class="hidden">
-            <label>Numero giocatori:</label>
-            <input type="number" id="players" min="3" max="20" value="6" oninput="renderNameFields()">
+<!-- SCELTA MODALITA -->
+<div class="card" id="modeArea">
 
-            <label>Numero impostori:</label>
-            <input type="number" id="impostors" min="1" max="5" value="1">
+    <h2>Scegli modalità</h2>
 
-            <label>Categoria:</label>
-            <select id="category">
-                <option value="calcio">Calcio</option>
-                <option value="calciatori">Calciatori</option>
-                <option value="musica">Musica</option>
-                <option value="serietvfilm">Serie TV &amp; Film</option>
-                <option value="geografia">Geografia</option>
-                <option value="cultura">Cultura Generale</option>
-            </select>
+    <button onclick="selectMode('offline')">
+        🟢 Offline
+    </button>
 
-            <div id="namesSection">
-                <label style="margin-top:22px;">Nomi giocatori:</label>
-                <div class="names-grid" id="namesGrid"></div>
-            </div>
+    <button onclick="selectMode('online')">
+        🔵 Online
+    </button>
 
-            <br>
-            <button onclick="startGame()">▶ Inizia Partita</button>
-        </div>
-    </div>
-
-    <!-- GAME -->
-    <div class="card hidden" id="gameArea" style="position:relative;">
-        <button class="pause-btn" onclick="openPauseModal()" title="Pausa">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="5" y="3" width="4" height="18" rx="2"/>
-                <rect x="15" y="3" width="4" height="18" rx="2"/>
-            </svg>
-        </button>
-        <div class="player-header">
-            <div class="player-avatar" id="gameAvatar">🙂</div>
-            <div id="playerTitle"></div>
-        </div>
-        <button onclick="showRole()">👁 Mostra Ruolo</button>
-    </div>
-
-    <!-- END -->
-    <div class="card hidden" id="endArea">
-        <h2>🎉 Tutti pronti!</h2>
-        <p>Ora discutete e scoprite chi sono gli impostori.</p>
-        <br>
-        <button onclick="goToMenu()">🏠 Menu Principale</button>
-    </div>
 </div>
 
-<!-- PAUSE MODAL -->
-<div id="pauseModal" class="hidden">
-    <div class="pm-card">
-        <div class="pm-icon">⏸️</div>
-        <h3>Partita in pausa</h3>
-        <p>Vuoi terminare la partita e tornare al menu principale?</p>
-        <div class="pm-buttons">
-            <button class="btn-yes" onclick="confirmAbort()">Sì, termina</button>
-            <button class="btn-no" onclick="closePauseModal()">No, continua</button>
-        </div>
-    </div>
+<!-- OFFLINE -->
+<div class="card hidden" id="offlineSetup">
+
+    <h2>Modalità Offline</h2>
+
+    <label>Numero giocatori</label>
+    <input type="number" id="offlinePlayers" value="5" min="3" max="20">
+
+    <label>Numero impostori</label>
+    <input type="number" id="offlineImpostors" value="1" min="1" max="5">
+
+    <label>Categoria</label>
+
+    <select id="offlineCategory">
+        <option value="calcio">Calcio</option>
+        <option value="musica">Musica</option>
+        <option value="film">Film</option>
+    </select>
+
+    <button onclick="startOffline()">
+        ▶ Inizia partita
+    </button>
+
 </div>
 
-<!-- REVEAL OVERLAY -->
-<div id="revealOverlay" class="hidden">
-    <div class="reveal-card">
-        <div class="reveal-avatar" id="revealAvatar">🙂</div>
-        <div class="reveal-name" id="revealName"></div>
-        <div class="reveal-word" id="revealWord"></div>
-        <div class="reveal-sub" id="revealSub"></div>
+<!-- ONLINE MENU -->
+<div class="card hidden" id="onlineMenu">
+
+    <h2>Modalità Online</h2>
+
+    <button onclick="showCreateRoom()">
+        👑 Crea stanza
+    </button>
+
+    <button onclick="showJoinRoom()">
+        🔑 Entra stanza
+    </button>
+
+</div>
+
+<!-- CREA STANZA -->
+<div class="card hidden" id="createRoomArea">
+
+    <h2>Crea stanza</h2>
+
+    <label>Tuo nome</label>
+    <input type="text" id="hostName">
+
+    <label>Numero giocatori</label>
+    <input type="number" id="roomPlayers" value="5">
+
+    <label>Numero impostori</label>
+    <input type="number" id="roomImpostors" value="1">
+
+    <label>Categoria</label>
+
+    <select id="roomCategory">
+        <option value="calcio">Calcio</option>
+        <option value="musica">Musica</option>
+        <option value="film">Film</option>
+    </select>
+
+    <button onclick="createRoom()">
+        🎮 Crea stanza
+    </button>
+
+</div>
+
+<!-- JOIN ROOM -->
+<div class="card hidden" id="joinRoomArea">
+
+    <h2>Entra in stanza</h2>
+
+    <label>Nome</label>
+    <input type="text" id="joinName">
+
+    <label>Codice stanza</label>
+    <input type="text" id="joinCode">
+
+    <button onclick="joinRoom()">
+        🚪 Entra
+    </button>
+
+</div>
+
+<!-- LOBBY -->
+<div class="card hidden" id="lobbyArea">
+
+    <h2>Lobby</h2>
+
+    <div>
+        Codice stanza:
+        <div class="code" id="roomCodeText"></div>
     </div>
-    <button onclick="closeReveal()">✔ Capito, chiudi</button>
+
+    <div id="playersList"></div>
+
+    <button id="startBtn"
+            class="hidden"
+            onclick="startOnlineGame()">
+
+        ▶ Avvia partita
+
+    </button>
+
+</div>
+
+<!-- ROLE -->
+<div class="card hidden" id="roleArea">
+
+    <h2>Il tuo ruolo</h2>
+
+    <div id="roleCard"></div>
+
+</div>
+
 </div>
 
 <script>
-// ── CONFIG ─────────────────────────────────────────────────────────────────
-// Quando carichi su GitHub, sostituisci con il tuo URL raw, es:
-// const BASE_URL = "https://raw.githubusercontent.com/TUONOME/gioco-impostore/main";
-// In locale (file://) usa percorsi relativi:
-const BASE_URL = "https://andreaoo.github.io/Impostore";
-// ──────────────────────────────────────────────────────────────────────────
 
-let allData = {};         // { calcio: [...], calciatori: [{nome,img},...], ... }
-let lagaccioImages = [];  // immagini random per calcio/calciatori senza img specifica
-let currentPlayer = 1;
-let totalPlayers = 0;
-let impostorList = [];
-let secretWord = "";
-let currentWordImg = null; // immagine associata alla parola sorteggiata (calciatori)
-let playerNames = [];
-let playerImgs = [];  // immagine assegnata a ogni giocatore per questa partita
+/* =========================================================
+   FIREBASE CONFIG
+========================================================= */
 
-// ── LOAD DATA ──────────────────────────────────────────────────────────────
-const categoryFiles = ["calcio","calciatori","musica","serietvfilm","geografia","cultura"];
+/*
+SE VUOI SOLO OFFLINE:
+LASCIA COSI
 
-async function loadAllData() {
-    try {
-        const results = await Promise.all(
-            categoryFiles.map(cat =>
-                fetch(`${BASE_URL}/data/${cat}.json`).then(r => r.json())
+SE VUOI ONLINE:
+INSERISCI LE TUE CHIAVI FIREBASE
+*/
+
+const firebaseConfig = {
+
+    apiKey: "INSERISCI_APIKEY",
+    authDomain: "INSERISCI_AUTHDOMAIN",
+    databaseURL: "INSERISCI_DATABASE_URL",
+    projectId: "INSERISCI_PROJECT_ID",
+    storageBucket: "INSERISCI_BUCKET",
+    messagingSenderId: "INSERISCI_SENDER",
+    appId: "INSERISCI_APPID"
+
+};
+
+let db = null;
+
+// ATTIVA FIREBASE SOLO SE CONFIGURATO
+if(firebaseConfig.apiKey !== "INSERISCI_APIKEY"){
+
+    firebase.initializeApp(firebaseConfig);
+
+    db = firebase.database();
+
+}
+
+/* =========================================================
+   PAROLE
+========================================================= */
+
+const words = {
+
+    calcio:[
+        "Messi",
+        "Rigore",
+        "Champions League",
+        "Juventus",
+        "Milan"
+    ],
+
+    musica:[
+        "Spotify",
+        "Rap",
+        "Concerto",
+        "Chitarra",
+        "Pianoforte"
+    ],
+
+    film:[
+        "Batman",
+        "Marvel",
+        "Netflix",
+        "Titanic",
+        "Harry Potter"
+    ]
+
+};
+
+/* =========================================================
+   VARIABILI
+========================================================= */
+
+let gameMode = "";
+
+let roomCode = "";
+
+let playerId = "";
+
+let isHost = false;
+
+/* =========================================================
+   MODALITA
+========================================================= */
+
+function selectMode(mode){
+
+    gameMode = mode;
+
+    document.getElementById("modeArea")
+        .classList.add("hidden");
+
+    // OFFLINE
+    if(mode === "offline"){
+
+        document.getElementById("offlineSetup")
+            .classList.remove("hidden");
+
+    }
+
+    // ONLINE
+    if(mode === "online"){
+
+        // FIREBASE NON CONFIGURATO
+        if(!db){
+
+            alert(
+                "Firebase non configurato.\n\n" +
+                "Inserisci le chiavi Firebase."
+            );
+
+            document.getElementById("modeArea")
+                .classList.remove("hidden");
+
+            return;
+        }
+
+        document.getElementById("onlineMenu")
+            .classList.remove("hidden");
+
+    }
+
+}
+
+/* =========================================================
+   OFFLINE
+========================================================= */
+
+function startOffline(){
+
+    const players = parseInt(
+        document.getElementById("offlinePlayers").value
+    );
+
+    const impostors = parseInt(
+        document.getElementById("offlineImpostors").value
+    );
+
+    const category =
+        document.getElementById("offlineCategory").value;
+
+    const secretWord =
+        words[category][
+            Math.floor(
+                Math.random() * words[category].length
             )
+        ];
+
+    let impostorIndexes = [];
+
+    while(impostorIndexes.length < impostors){
+
+        let rand = Math.floor(Math.random() * players);
+
+        if(!impostorIndexes.includes(rand)){
+
+            impostorIndexes.push(rand);
+
+        }
+
+    }
+
+    let currentPlayer = 0;
+
+    function showNextPlayer(){
+
+        if(currentPlayer >= players){
+
+            alert(
+                "Tutti i giocatori hanno visto il ruolo!"
+            );
+
+            location.reload();
+
+            return;
+
+        }
+
+        const role =
+            impostorIndexes.includes(currentPlayer)
+            ? "🕵️ IMPOSTORE"
+            : secretWord;
+
+        alert(
+            "Giocatore " +
+            (currentPlayer + 1) +
+            "\n\n" +
+            role
         );
-        categoryFiles.forEach((cat, i) => allData[cat] = results[i]);
 
-        // Build lagaccio images list — nomi fissi giocatore1..8
-        lagaccioImages = [];
-        for (let i = 1; i <= 8; i++) {
-            lagaccioImages.push(`${BASE_URL}/images/lagaccio/giocatore${i}.jpg`);
-        }
+        currentPlayer++;
 
-        document.getElementById("loadingMsg").classList.add("hidden");
-        document.getElementById("setupForm").classList.remove("hidden");
-        renderNameFields();
-    } catch(e) {
-        document.getElementById("loadingMsg").innerText = "❌ Errore caricamento dati. Controlla la connessione.";
-        console.error(e);
+        showNextPlayer();
+
     }
+
+    showNextPlayer();
+
 }
 
-loadAllData();
+/* =========================================================
+   ONLINE MENU
+========================================================= */
 
-// ── NAME FIELDS ────────────────────────────────────────────────────────────
-function renderNameFields() {
-    const n = Math.max(3, Math.min(20, parseInt(document.getElementById("players").value) || 3));
-    const grid = document.getElementById("namesGrid");
-    grid.innerHTML = "";
-    for (let i = 1; i <= n; i++) {
-        const prev = playerNames[i-1] || "";
-        grid.innerHTML += `
-        <div class="name-field">
-            <label>Giocatore ${i}</label>
-            <input type="text" id="name_${i}" placeholder="Nome..." value="${prev}" maxlength="20">
-        </div>`;
-    }
+function showCreateRoom(){
+
+    document.getElementById("onlineMenu")
+        .classList.add("hidden");
+
+    document.getElementById("createRoomArea")
+        .classList.remove("hidden");
+
 }
 
-// ── START GAME ─────────────────────────────────────────────────────────────
-function startGame() {
-    totalPlayers = parseInt(document.getElementById("players").value);
-    const impostorCount = parseInt(document.getElementById("impostors").value);
-    const category = document.getElementById("category").value;
+function showJoinRoom(){
 
-    if (impostorCount >= totalPlayers) {
-        alert("Gli impostori devono essere meno dei giocatori!");
+    document.getElementById("onlineMenu")
+        .classList.add("hidden");
+
+    document.getElementById("joinRoomArea")
+        .classList.remove("hidden");
+
+}
+
+/* =========================================================
+   CREA CODICE
+========================================================= */
+
+function generateCode(){
+
+    const chars =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
+
+    let code = "";
+
+    for(let i=0;i<6;i++){
+
+        code += chars[
+            Math.floor(Math.random()*chars.length)
+        ];
+
+    }
+
+    return code;
+
+}
+
+/* =========================================================
+   CREA STANZA
+========================================================= */
+
+function createRoom(){
+
+    const name =
+        document.getElementById("hostName")
+        .value
+        .trim();
+
+    if(!name){
+
+        alert("Inserisci il nome");
+
         return;
+
     }
 
-    // Collect names
-    playerNames = [];
-    for (let i = 1; i <= totalPlayers; i++) {
-        const val = document.getElementById("name_" + i)?.value.trim();
-        playerNames.push(val || "Giocatore " + i);
-    }
+    roomCode = generateCode();
 
-    // Pick secret word / calciatore
-    const data = allData[category];
-    const pick = data[Math.floor(Math.random() * data.length)];
+    playerId = "p_" + Date.now();
 
-    if (category === "calciatori" && typeof pick === "object") {
-        secretWord = pick.nome;
-        currentWordImg = pick.img ? `${BASE_URL}/${pick.img}` : null;
-    } else {
-        secretWord = typeof pick === "object" ? pick.nome : pick;
-        currentWordImg = null;
-    }
+    isHost = true;
 
-    // Assign player images (lagaccio images fully random per player, for calcio & calciatori)
-    const useImages = (category === "calcio" || category === "calciatori") && lagaccioImages.length > 0;
-    playerImgs = [];
-    for (let i = 0; i < totalPlayers; i++) {
-        if (useImages) {
-            const randomImg = lagaccioImages[Math.floor(Math.random() * lagaccioImages.length)];
-            playerImgs.push(randomImg);
-        } else {
-            playerImgs.push(null);
-        }
-    }
+    const roomData = {
 
-    // Pick impostors
-    impostorList = [];
-    while (impostorList.length < impostorCount) {
-        const r = Math.floor(Math.random() * totalPlayers) + 1;
-        if (!impostorList.includes(r)) impostorList.push(r);
-    }
+        host: playerId,
 
-    currentPlayer = 1;
-    document.getElementById("setupArea").classList.add("hidden");
-    document.getElementById("gameArea").classList.remove("hidden");
-    updatePlayer();
+        started:false,
+
+        settings:{
+
+            players: parseInt(
+                document.getElementById("roomPlayers").value
+            ),
+
+            impostors: parseInt(
+                document.getElementById("roomImpostors").value
+            ),
+
+            category:
+                document.getElementById("roomCategory").value
+
+        },
+
+        players:{}
+
+    };
+
+    roomData.players[playerId] = {
+
+        name:name,
+
+        role:"",
+        word:""
+
+    };
+
+    db.ref("rooms/" + roomCode)
+        .set(roomData);
+
+    openLobby();
+
 }
 
-// ── PLAYER UPDATE ──────────────────────────────────────────────────────────
-function updatePlayer() {
-    const name = playerNames[currentPlayer - 1];
-    document.getElementById("playerTitle").innerText = name;
+/* =========================================================
+   JOIN ROOM
+========================================================= */
 
-    const img = playerImgs[currentPlayer - 1];
-    const av = document.getElementById("gameAvatar");
-    if (img) {
-        av.innerHTML = `<img src="${img}" alt="${name}">`;
-    } else {
-        av.innerHTML = "🙂";
-    }
-}
+function joinRoom(){
 
-// ── SHOW ROLE ──────────────────────────────────────────────────────────────
-function showRole() {
-    const name = playerNames[currentPlayer - 1];
-    const isImpostor = impostorList.includes(currentPlayer);
-    const img = playerImgs[currentPlayer - 1];
+    const name =
+        document.getElementById("joinName")
+        .value
+        .trim();
 
-    const revAv = document.getElementById("revealAvatar");
-    if (img) {
-        revAv.innerHTML = `<img src="${img}" alt="${name}">`;
-        revAv.style.borderColor = isImpostor ? "#dc2626" : "#2563eb";
-        revAv.style.boxShadow = isImpostor
-            ? "0 0 24px rgba(220,38,38,0.5)"
-            : "0 0 24px rgba(37,99,235,0.4)";
-    } else {
-        revAv.innerHTML = "🙂";
-        revAv.style.borderColor = "#2563eb";
-        revAv.style.boxShadow = "0 0 24px rgba(37,99,235,0.4)";
+    roomCode =
+        document.getElementById("joinCode")
+        .value
+        .trim()
+        .toUpperCase();
+
+    if(!name || !roomCode){
+
+        alert("Compila tutti i campi");
+
+        return;
+
     }
 
-    document.getElementById("revealName").innerText = name;
+    playerId = "p_" + Date.now();
 
-    const wordEl = document.getElementById("revealWord");
-    const subEl = document.getElementById("revealSub");
+    db.ref("rooms/" + roomCode)
+        .once("value")
+        .then(snapshot=>{
 
-    if (isImpostor) {
-        wordEl.innerText = "🕵️ IMPOSTORE";
-        wordEl.className = "reveal-word imp";
-        subEl.innerText = "Bluffa bene!";
-    } else {
-        wordEl.innerText = secretWord;
-        wordEl.className = "reveal-word";
-        subEl.innerText = "Ricorda la parola e non tradire!";
+            if(!snapshot.exists()){
+
+                alert("Stanza non trovata");
+
+                return;
+
+            }
+
+            db.ref(
+                "rooms/" +
+                roomCode +
+                "/players/" +
+                playerId
+            ).set({
+
+                name:name,
+
+                role:"",
+                word:""
+
+            });
+
+            openLobby();
+
+        });
+
+}
+
+/* =========================================================
+   OPEN LOBBY
+========================================================= */
+
+function openLobby(){
+
+    document.getElementById("createRoomArea")
+        .classList.add("hidden");
+
+    document.getElementById("joinRoomArea")
+        .classList.add("hidden");
+
+    document.getElementById("lobbyArea")
+        .classList.remove("hidden");
+
+    document.getElementById("roomCodeText")
+        .innerText = roomCode;
+
+    listenLobby();
+
+}
+
+/* =========================================================
+   LISTEN LOBBY
+========================================================= */
+
+function listenLobby(){
+
+    db.ref("rooms/" + roomCode)
+        .on("value", snapshot=>{
+
+            const data = snapshot.val();
+
+            if(!data) return;
+
+            renderPlayers(data.players);
+
+            if(isHost){
+
+                document.getElementById("startBtn")
+                    .classList.remove("hidden");
+
+            }
+
+            if(data.started){
+
+                showRole(
+                    data.players[playerId]
+                );
+
+            }
+
+        });
+
+}
+
+/* =========================================================
+   RENDER PLAYERS
+========================================================= */
+
+function renderPlayers(players){
+
+    const list =
+        document.getElementById("playersList");
+
+    list.innerHTML = "";
+
+    Object.keys(players).forEach(id=>{
+
+        const p = players[id];
+
+        list.innerHTML += `
+            <div class="player">
+                ${id === playerId ? "🟢" : "⚪"}
+                ${p.name}
+                ${id === playerId && isHost ? "👑" : ""}
+            </div>
+        `;
+
+    });
+
+}
+
+/* =========================================================
+   START ONLINE GAME
+========================================================= */
+
+function startOnlineGame(){
+
+    db.ref("rooms/" + roomCode)
+        .once("value")
+        .then(snapshot=>{
+
+            const data = snapshot.val();
+
+            const category =
+                data.settings.category;
+
+            const impostorsCount =
+                data.settings.impostors;
+
+            const players = data.players;
+
+            const ids = Object.keys(players);
+
+            const secretWord =
+                words[category][
+                    Math.floor(
+                        Math.random() *
+                        words[category].length
+                    )
+                ];
+
+            let impostors = [];
+
+            while(
+                impostors.length < impostorsCount
+            ){
+
+                let rand =
+                    ids[
+                        Math.floor(
+                            Math.random() *
+                            ids.length
+                        )
+                    ];
+
+                if(!impostors.includes(rand)){
+
+                    impostors.push(rand);
+
+                }
+
+            }
+
+            ids.forEach(id=>{
+
+                players[id].role =
+                    impostors.includes(id)
+                    ? "impostor"
+                    : "player";
+
+                players[id].word =
+                    impostors.includes(id)
+                    ? ""
+                    : secretWord;
+
+            });
+
+            db.ref("rooms/" + roomCode)
+                .update({
+
+                    started:true,
+
+                    players:players
+
+                });
+
+        });
+
+}
+
+/* =========================================================
+   SHOW ROLE
+========================================================= */
+
+function showRole(player){
+
+    document.getElementById("lobbyArea")
+        .classList.add("hidden");
+
+    document.getElementById("roleArea")
+        .classList.remove("hidden");
+
+    const card =
+        document.getElementById("roleCard");
+
+    if(player.role === "impostor"){
+
+        card.innerHTML = `
+            <div class="big red">
+                🕵️ IMPOSTORE
+            </div>
+
+            <p style="margin-top:15px;">
+                Bluffa bene!
+            </p>
+        `;
+
+    }else{
+
+        card.innerHTML = `
+            <div class="big green">
+                ${player.word}
+            </div>
+
+            <p style="margin-top:15px;">
+                Ricorda la parola!
+            </p>
+        `;
+
     }
 
-    document.getElementById("revealOverlay").classList.remove("hidden");
 }
 
-function closeReveal() {
-    document.getElementById("revealOverlay").classList.add("hidden");
-    currentPlayer++;
-    if (currentPlayer > totalPlayers) {
-        document.getElementById("gameArea").classList.add("hidden");
-        document.getElementById("endArea").classList.remove("hidden");
-    } else {
-        updatePlayer();
-    }
-}
-
-// ── PAUSE / ABORT ──────────────────────────────────────────────────────────
-function openPauseModal() {
-    document.getElementById("pauseModal").classList.remove("hidden");
-}
-function closePauseModal() {
-    document.getElementById("pauseModal").classList.add("hidden");
-}
-function confirmAbort() {
-    document.getElementById("pauseModal").classList.add("hidden");
-    document.getElementById("gameArea").classList.add("hidden");
-    document.getElementById("endArea").classList.add("hidden");
-    document.getElementById("revealOverlay").classList.add("hidden");
-    document.getElementById("setupArea").classList.remove("hidden");
-    currentPlayer = 1; impostorList = []; secretWord = ""; playerNames = [];
-    renderNameFields();
-}
-function goToMenu() {
-    document.getElementById("endArea").classList.add("hidden");
-    document.getElementById("setupArea").classList.remove("hidden");
-    currentPlayer = 1; impostorList = []; secretWord = ""; playerNames = [];
-    renderNameFields();
-}
 </script>
+
 </body>
 </html>
