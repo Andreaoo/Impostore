@@ -254,8 +254,6 @@ const BASE_URL = ".";
 
 let allData = {};         // { calcio: [...], calciatori: [{nome,img},...], ... }
 let lagaccioImages = [];  // immagini random per calcio/calciatori senza img specifica
-let shuffledImages = [];
-
 let currentPlayer = 1;
 let totalPlayers = 0;
 let impostorList = [];
@@ -338,14 +336,16 @@ function startGame() {
         currentWordImg = null;
     }
 
-    // Assign player images (lagaccio images shuffled, for calcio & calciatori)
+    // Assign player images (lagaccio images fully random per player, for calcio & calciatori)
     const useImages = (category === "calcio" || category === "calciatori") && lagaccioImages.length > 0;
-    if (useImages) {
-        shuffledImages = [...lagaccioImages].sort(() => Math.random() - 0.5);
-    }
     playerImgs = [];
     for (let i = 0; i < totalPlayers; i++) {
-        playerImgs.push(useImages ? shuffledImages[i % shuffledImages.length] : null);
+        if (useImages) {
+            const randomImg = lagaccioImages[Math.floor(Math.random() * lagaccioImages.length)];
+            playerImgs.push(randomImg);
+        } else {
+            playerImgs.push(null);
+        }
     }
 
     // Pick impostors
