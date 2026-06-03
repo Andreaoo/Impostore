@@ -249,7 +249,7 @@ button:active{transform:translateY(0);}
 // Quando carichi su GitHub, sostituisci con il tuo URL raw, es:
 // const BASE_URL = "https://raw.githubusercontent.com/TUONOME/gioco-impostore/main";
 // In locale (file://) usa percorsi relativi:
-const BASE_URL = "https://andreaoo.github.io/Impostore";
+const BASE_URL = ".";
 // ──────────────────────────────────────────────────────────────────────────
 
 let allData = {};         // { calcio: [...], calciatori: [{nome,img},...], ... }
@@ -276,10 +276,11 @@ async function loadAllData() {
         );
         categoryFiles.forEach((cat, i) => allData[cat] = results[i]);
 
-        // Build lagaccio images list from calciatori entries that have img
-        lagaccioImages = allData.calciatori
-            .filter(c => c.img)
-            .map(c => `${BASE_URL}/${c.img}`);
+        // Build lagaccio images list — nomi fissi giocatore1..8
+        lagaccioImages = [];
+        for (let i = 1; i <= 8; i++) {
+            lagaccioImages.push(`${BASE_URL}/images/lagaccio/giocatore${i}.jpg`);
+        }
 
         document.getElementById("loadingMsg").classList.add("hidden");
         document.getElementById("setupForm").classList.remove("hidden");
